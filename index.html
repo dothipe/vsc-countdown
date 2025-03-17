@@ -105,7 +105,7 @@
     <audio id="tickSound" src="tick.mp3"></audio>
     
     <script>
-        let timeLeft = 30; // Mặc định 30 giây
+        let timeLeft = 30;
         let timer;
         let isPaused = false;
         const countdownElement = document.getElementById("countdown");
@@ -158,42 +158,21 @@
                     if (timeLeft === 0) {
                         clearInterval(timer);
                         updateDisplay();
+                        startButton.disabled = false;
                         endSound.play();
-                        resetButton.disabled = false;
                     }
                 }, 1000);
             }, 3000);
         }
 
-        function pauseCountdown() {
-            isPaused = true;
-            pauseButton.disabled = true;
-            resumeButton.disabled = false;
-        }
-
-        function resumeCountdown() {
-            isPaused = false;
-            pauseButton.disabled = false;
-            resumeButton.disabled = true;
-        }
-
-        function resetCountdown() {
-            clearInterval(timer);
-            timeLeft = parseInt(minutesInput.value) * 60 + parseInt(secondsInput.value);
-            updateDisplay();
-            startButton.disabled = false;
-            pauseButton.disabled = true;
-            resumeButton.disabled = true;
-            resetButton.disabled = false;
-            isPaused = false;
-            minutesInput.disabled = false;
-            secondsInput.disabled = false;
-        }
-
-        startButton.addEventListener("click", startCountdown);
-        pauseButton.addEventListener("click", pauseCountdown);
-        resumeButton.addEventListener("click", resumeCountdown);
-        resetButton.addEventListener("click", resetCountdown);
+        document.addEventListener("keydown", function(event) {
+            if (event.code === "Space") {
+                event.preventDefault(); 
+                if (!startButton.disabled) {
+                    startCountdown();
+                }
+            }
+        });
 
         updateDisplay();
     </script>

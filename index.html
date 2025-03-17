@@ -16,7 +16,7 @@
             background-color: black;
             color: white;
             margin: 0;
-            overflow: hidden;
+            overflow: auto;
         }
         .header {
             height: 20%;
@@ -33,7 +33,7 @@
             height: auto;
         }
         .content {
-            height: 63%;
+            height: 58%;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -44,7 +44,7 @@
             color: yellow;
         }
         .bottom {
-            height: 15%;
+            height: 20%;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -158,14 +158,44 @@
                     if (timeLeft === 0) {
                         clearInterval(timer);
                         updateDisplay();
-                        setTimeout(() => endSound.play(), 10);
+                        endSound.play();
                         resetButton.disabled = false;
                     }
                 }, 1000);
             }, 3000);
         }
 
+        function pauseCountdown() {
+            isPaused = true;
+            pauseButton.disabled = true;
+            resumeButton.disabled = false;
+        }
+
+        function resumeCountdown() {
+            isPaused = false;
+            pauseButton.disabled = false;
+            resumeButton.disabled = true;
+        }
+
+        function resetCountdown() {
+            clearInterval(timer);
+            timeLeft = parseInt(minutesInput.value) * 60 + parseInt(secondsInput.value);
+            updateDisplay();
+            startButton.disabled = false;
+            pauseButton.disabled = true;
+            resumeButton.disabled = true;
+            resetButton.disabled = false;
+            isPaused = false;
+            minutesInput.disabled = false;
+            secondsInput.disabled = false;
+        }
+
         startButton.addEventListener("click", startCountdown);
+        pauseButton.addEventListener("click", pauseCountdown);
+        resumeButton.addEventListener("click", resumeCountdown);
+        resetButton.addEventListener("click", resetCountdown);
+
+        updateDisplay();
     </script>
 </body>
 </html>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Countdown Timer - Created by Hiep Huu Nguyen - 0968.21.05.86">
+    <title>Vietnam Slingshot Championship - Countdown Timer</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+            background-color: black;
+            color: white;
+            margin: 0;
+            overflow: hidden;
+        }
+        .header {
+            height: 20%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 2vw;
+            font-weight: bold;
+        }
+        .logo {
+            margin-top: 5px;
+            width: 80px;
+            height: auto;
+        }
+        .content {
+            height: 63%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .timer {
+            font-size: 20vw;
+            font-weight: bold;
+            color: yellow;
+        }
+        .bottom {
+            height: 15%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .button-container, .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        .button {
+            padding: 1vw 2vw;
+            font-size: 1.5vw;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            color: white;
+            background-color: #007BFF;
+        }
+        .button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
+        .time-input {
+            font-size: 2vw;
+            text-align: center;
+            width: 6vw;
+            padding: 5px;
+            border: 2px solid white;
+            background-color: black;
+            color: yellow;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        VSC - THỜI GIAN ĐẾM NGƯỢC
+        <img src="VSC.png" alt="VSC Logo" class="logo">
+    </div>
+    <div class="content">
+        <div class="timer" id="countdown">00:30</div>
+    </div>
+    <div class="bottom">
+        <div class="input-container">
+            <input type="number" id="minutesInput" class="time-input" min="0" value="0"> :
+            <input type="number" id="secondsInput" class="time-input" min="0" max="59" value="30">
+        </div>
+        <div class="button-container">
+            <button class="button" id="startButton">Bắt đầu</button>
+            <button class="button" id="pauseButton" disabled>Tạm dừng</button>
+            <button class="button" id="resumeButton" disabled>Tiếp tục</button>
+            <button class="button" id="resetButton">Reset</button>
+        </div>
+    </div>
+    
+    <audio id="prepareSound" src="prepare.mp3"></audio>
+    <audio id="startSound" src="start.mp3"></audio>
+    <audio id="endSound" src="end.mp3"></audio>
+    <audio id="tickSound" src="tick.mp3"></audio>
+    
+    <script>
+        let timeLeft = 30; // Mặc định 30 giây
+        let timer;
+        let isPaused = false;
+        const countdownElement = document.getElementById("countdown");
+        const startButton = document.getElementById("startButton");
+        const pauseButton = document.getElementById("pauseButton");
+        const resumeButton = document.getElementById("resumeButton");
+        const resetButton = document.getElementById("resetButton");
+        const minutesInput = document.getElementById("minutesInput");
+        const secondsInput = document.getElementById("secondsInput");
+        const prepareSound = document.getElementById("prepareSound");
+        const startSound = document.getElementById("startSound");
+        const endSound = document.getElementById("endSound");
+        const tickSound = document.getElementById("tickSound");
+
+        function updateDisplay() {
+            let minutes = Math.floor(timeLeft / 60);
+            let seconds = timeLeft % 60;
+            countdownElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            countdownElement.style.color = timeLeft <= 10 ? "red" : "yellow";
+        }
+
+        function startCountdown() {
+            let minutes = parseInt(minutesInput.value) || 0;
+            let seconds = parseInt(secondsInput.value) || 0;
+            timeLeft = minutes * 60 + seconds;
+            
+            if (timeLeft <= 0) return;
+            
+            startButton.disabled = true;
+            pauseButton.disabled = false;
+            resetButton.disabled = false;
+            minutesInput.disabled = true;
+            secondsInput.disabled = true;
+
+            prepareSound.play();
+            setTimeout(() => {
+                startSound.play();
+                timer = setInterval(() => {
+                    if (!isPaused && timeLeft > 0) {
+                        timeLeft--;
+                        updateDisplay();
+
+                        if (timeLeft >= (minutes * 60 + seconds - 5)) {
+                            tickSound.play();
+                        }
+                        if (timeLeft <= 10 && timeLeft > 0) {
+                            tickSound.play();
+                        }
+                    }
+                    if (timeLeft === 0) {
+                        clearInterval(timer);
+                        updateDisplay();
+                        endSound.play();
+                        resetButton.disabled = false;
+                    }
+                }, 1000);
+            }, 3000);
+        }
+
+        function pauseCountdown() {
+            isPaused = true;
+            pauseButton.disabled = true;
+            resumeButton.disabled = false;
+        }
+
+        function resumeCountdown() {
+            isPaused = false;
+            pauseButton.disabled = false;
+            resumeButton.disabled = true;
+        }
+
+        function resetCountdown() {
+            clearInterval(timer);
+            timeLeft = parseInt(minutesInput.value) * 60 + parseInt(secondsInput.value);
+            updateDisplay();
+            startButton.disabled = false;
+            pauseButton.disabled = true;
+            resumeButton.disabled = true;
+            resetButton.disabled = false;
+            isPaused = false;
+            minutesInput.disabled = false;
+            secondsInput.disabled = false;
+        }
+
+        startButton.addEventListener("click", startCountdown);
+        pauseButton.addEventListener("click", pauseCountdown);
+        resumeButton.addEventListener("click", resumeCountdown);
+        resetButton.addEventListener("click", resetCountdown);
+
+        updateDisplay();
+    </script>
+</body>
+</html>

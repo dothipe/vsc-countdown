@@ -1,4 +1,4 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -128,12 +128,7 @@
         }
 
         function startCountdown() {
-            let minutes = parseInt(minutesInput.value) || 0;
-            let seconds = parseInt(secondsInput.value) || 0;
-            timeLeft = minutes * 60 + seconds;
-            
-            if (timeLeft <= 0) return;
-            
+            if (startButton.disabled) return;
             startButton.disabled = true;
             pauseButton.disabled = false;
             resetButton.disabled = false;
@@ -147,32 +142,39 @@
                     if (!isPaused && timeLeft > 0) {
                         timeLeft--;
                         updateDisplay();
-
-                        if (timeLeft >= (minutes * 60 + seconds - 5)) {
-                            tickSound.play();
-                        }
-                        if (timeLeft <= 10 && timeLeft > 0) {
-                            tickSound.play();
-                        }
+                        if (timeLeft >= 25 || timeLeft <= 10) tickSound.play();
                     }
                     if (timeLeft === 0) {
                         clearInterval(timer);
                         updateDisplay();
-                        startButton.disabled = false;
                         endSound.play();
+                        startButton.disabled = false;
                     }
                 }, 1000);
             }, 3000);
         }
 
-        document.addEventListener("keydown", function(event) {
+        function resetCountdown() {
+            clearInterval(timer);
+            timeLeft = parseInt(minutesInput.value) * 60 + parseInt(secondsInput.value);
+            updateDisplay();
+            startButton.disabled = false;
+            pauseButton.disabled = true;
+            resumeButton.disabled = true;
+            resetButton.disabled = false;
+            isPaused = false;
+            minutesInput.disabled = false;
+            secondsInput.disabled = false;
+        }
+
+        startButton.addEventListener("click", startCountdown);
+        document.addEventListener("keydown", (event) => {
             if (event.code === "Space") {
-                event.preventDefault(); 
-                if (!startButton.disabled) {
-                    startCountdown();
-                }
+                event.preventDefault();
+                startCountdown();
             }
         });
+        resetButton.addEventListener("click", resetCountdown);
 
         updateDisplay();
     </script>

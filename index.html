@@ -3,7 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Countdown Timer - Created by Hiep Huu Nguyen - 0968.21.05.86">
     <title>Vietnam Slingshot Championship - Countdown Timer</title>
     <style>
         body {
@@ -16,7 +15,7 @@
             background-color: black;
             color: white;
             margin: 0;
-            overflow: auto;
+            overflow: hidden;
         }
         .header {
             height: 20%;
@@ -84,11 +83,11 @@
         <img src="VSC.png" alt="VSC Logo" class="logo">
     </div>
     <div class="content">
-        <div class="timer" id="countdown">00:30</div>
+        <div class="timer" id="countdown">02:30</div>
     </div>
     <div class="bottom">
         <div class="input-container">
-            <input type="number" id="minutesInput" class="time-input" min="0" value="0"> :
+            <input type="number" id="minutesInput" class="time-input" min="0" value="02"> :
             <input type="number" id="secondsInput" class="time-input" min="0" max="59" value="30">
         </div>
         <div class="button-container">
@@ -96,6 +95,7 @@
             <button class="button" id="pauseButton" disabled>Tạm dừng</button>
             <button class="button" id="resumeButton" disabled>Tiếp tục</button>
             <button class="button" id="resetButton">Reset</button>
+            <button class="button" id="stopButton" disabled>STOP</button>
         </div>
     </div>
     
@@ -105,74 +105,61 @@
     <audio id="tickSound" src="tick.mp3"></audio>
     
     <script>
-        let timeLeft = 30; // Mặc định 30 giây
-        let timer;
-        let isPaused = false;
-        const countdownElement = document.getElementById("countdown");
-        const startButton = document.getElementById("startButton");
-        const pauseButton = document.getElementById("pauseButton");
-        const resumeButton = document.getElementById("resumeButton");
-        const resetButton = document.getElementById("resetButton");
-        const minutesInput = document.getElementById("minutesInput");
-        const secondsInput = document.getElementById("secondsInput");
-        const prepareSound = document.getElementById("prepareSound");
-        const startSound = document.getElementById("startSound");
-        const endSound = document.getElementById("endSound");
-        const tickSound = document.getElementById("tickSound");
-
+        let timeLeft = 150, timer, isPaused = false, isStopped = false;
+        const countdown = document.getElementById("countdown");
+        const [startBtn, pauseBtn, resumeBtn, resetBtn, stopBtn] = 
+            ["startButton", "pauseButton", "resumeButton", "resetButton", "stopButton"].map(id => document.getElementById(id));
+        const [minutesInput, secondsInput] = [document.getElementById("minutesInput"), document.getElementById("secondsInput")];
+        const [prepareSound, startSound, endSound, tickSound] = ["prepareSound", "startSound", "endSound", "tickSound"].map(id => document.getElementById(id));
+        
         function updateDisplay() {
-            let minutes = Math.floor(timeLeft / 60);
-            let seconds = timeLeft % 60;
-            countdownElement.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-            countdownElement.style.color = timeLeft <= 10 ? "red" : "yellow";
+            let min = Math.floor(timeLeft / 60), sec = timeLeft % 60;
+            countdown.textContent = `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+            countdown.style.color = timeLeft <= 10 ? "red" : "yellow";
         }
 
         function startCountdown() {
-            let minutes = parseInt(minutesInput.value) || 0;
-            let seconds = parseInt(secondsInput.value) || 0;
-            timeLeft = minutes * 60 + seconds;
-            
+            let min = parseInt(minutesInput.value) || 0, sec = parseInt(secondsInput.value) || 0;
+            timeLeft = min * 60 + sec;
             if (timeLeft <= 0) return;
-            
-            startButton.disabled = true;
-            pauseButton.disabled = false;
-            resetButton.disabled = false;
-            minutesInput.disabled = true;
-            secondsInput.disabled = true;
-
+            isPaused = isStopped = false;
+            startBtn.disabled = true; pauseBtn.disabled = false; stopBtn.disabled = false;
             prepareSound.play();
             setTimeout(() => {
-                startSound.play();
+                if (isStopped) return;
+                startSound.play(); 
+                tickSound.play();
                 timer = setInterval(() => {
                     if (!isPaused && timeLeft > 0) {
-                        timeLeft--;
-                        updateDisplay();
-
-                        if (timeLeft >= (minutes * 60 + seconds - 5)) {
-                            tickSound.play();
-                        }
-                        if (timeLeft <= 10 && timeLeft > 0) {
-                            tickSound.play();
-                        }
+                        timeLeft--; updateDisplay();
+                        if (timeLeft <= 5 || timeLeft === (min * 60 + sec - 1)) tickSound.play();
                     }
                     if (timeLeft === 0) {
-                        clearInterval(timer);
-                        updateDisplay();
-                        endSound.play();
-                        resetButton.disabled = false;
-                        startButton.disabled = false;
+                        clearInterval(timer); endSound.play();
+                        setTimeout(resetCountdown, 5000);
                     }
                 }, 1000);
             }, 3000);
         }
 
-        startButton.addEventListener("click", startCountdown);
-        document.addEventListener("keydown", (event) => {
-            if (event.code === "Space") {
-                startCountdown();
-            }
-        });
+        function stopCountdown() {
+            clearInterval(timer); isStopped = true; timeLeft = 0;
+            updateDisplay();
+            startBtn.disabled = false; pauseBtn.disabled = true; resumeBtn.disabled = true; stopBtn.disabled = true;
+        }
 
+        function pauseCountdown() { isPaused = true; pauseBtn.disabled = true; resumeBtn.disabled = false; }
+        function resumeCountdown() { isPaused = false; pauseBtn.disabled = false; resumeBtn.disabled = true; }
+        
+        function resetCountdown() {
+            clearInterval(timer); let min = parseInt(minutesInput.value) || 0, sec = parseInt(secondsInput.value) || 0;
+            timeLeft = min * 60 + sec; isPaused = isStopped = false; updateDisplay();
+            startBtn.disabled = false; pauseBtn.disabled = true; resumeBtn.disabled = true; stopBtn.disabled = true;
+        }
+
+        [startBtn, pauseBtn, resumeBtn, resetBtn, stopBtn].forEach((btn, i) => 
+            btn.addEventListener("click", [startCountdown, pauseCountdown, resumeCountdown, resetCountdown, stopCountdown][i]));
+        
         updateDisplay();
     </script>
 </body>

@@ -102,7 +102,8 @@
     <audio id="prepareSound" src="prepare.mp3"></audio>
     <audio id="startSound" src="start.mp3"></audio>
     <audio id="endSound" src="end.mp3"></audio>
-    <audio id="tickSound" src="tick.mp3"></audio>
+    <audio id="tickStartSound" src="tick_start.mp3"></audio>
+    <audio id="tickEndSound" src="tick_end.mp3"></audio>
     
     <script>
         let timeLeft = 150, timer, isPaused = false, isStopped = false;
@@ -110,7 +111,8 @@
         const [startBtn, pauseBtn, resumeBtn, resetBtn, stopBtn] = 
             ["startButton", "pauseButton", "resumeButton", "resetButton", "stopButton"].map(id => document.getElementById(id));
         const [minutesInput, secondsInput] = [document.getElementById("minutesInput"), document.getElementById("secondsInput")];
-        const [prepareSound, startSound, endSound, tickSound] = ["prepareSound", "startSound", "endSound", "tickSound"].map(id => document.getElementById(id));
+        const [prepareSound, startSound, endSound, tickStartSound, tickEndSound] = 
+            ["prepareSound", "startSound", "endSound", "tickStartSound", "tickEndSound"].map(id => document.getElementById(id));
         
         function updateDisplay() {
             let min = Math.floor(timeLeft / 60), sec = timeLeft % 60;
@@ -128,11 +130,11 @@
             setTimeout(() => {
                 if (isStopped) return;
                 startSound.play(); 
-                tickSound.play();
+                tickStartSound.play();
                 timer = setInterval(() => {
                     if (!isPaused && timeLeft > 0) {
                         timeLeft--; updateDisplay();
-                        if (timeLeft <= 5 || timeLeft === (min * 60 + sec - 1)) tickSound.play();
+                        if (timeLeft <= 5) tickEndSound.play();
                     }
                     if (timeLeft === 0) {
                         clearInterval(timer); endSound.play();
